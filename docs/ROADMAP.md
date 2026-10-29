@@ -45,7 +45,8 @@
 ## Phase 6 — memory and usability
 - [x] Metadata-only task history; prompts, images, responses, and keys are excluded.
 - [x] Responsive UI with task modes and optional image upload.
-- [ ] History view, clear/export controls, and opt-in conversation memory.
+- [x] Basic history view showing metadata only.
+- [ ] Clear/export controls and opt-in conversation memory.
 - [ ] Per-model budgets, cancellation, and regression tests.
 
 ## Definition of done
