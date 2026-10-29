@@ -18,7 +18,8 @@
   },
   "scripts": {
     "serve": "php -S 127.0.0.1:8080 -t public",
-    "check": "php -l public/index.php"
+    "check": "php -l public/index.php",
+    "test:smoke": "php tests/smoke.php"
   },
   "config": {
     "sort-packages": true,
