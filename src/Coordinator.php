@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace AgentSystem;
 
 use AgentSystem\Agents\SpecialistAgent;
-use AgentSystem\Tools\BrowserTool;
+use AgentSystem\Tools\BrowserCaptureTool;
 use AgentSystem\Tools\ResearchTool;
 use AgentSystem\Tools\TaskLog;
 use AgentSystem\Tools\WorkspaceTool;
@@ -14,7 +14,7 @@ final class Coordinator
         private readonly ModelGateway $gateway = new ModelGateway(),
         private readonly ResearchTool $research = new ResearchTool(),
         private readonly WorkspaceTool $workspace = new WorkspaceTool(),
-        private readonly BrowserTool $browser = new BrowserTool(),
+        private readonly BrowserCaptureTool $browser = new BrowserCaptureTool(),
         private readonly TaskLog $taskLog = new TaskLog(),
     ) {}
 
