@@ -1,5 +1,6 @@
 import http from 'node:http';
 import { isIP } from 'node:net';
+import { lookup } from 'node:dns/promises';
 import { chromium } from 'playwright';
 
 const HOST = process.env.BROWSER_WORKER_HOST || '127.0.0.1';
@@ -17,6 +18,39 @@ function validateUrl(raw) {
     throw new Error('Host local o IP no permitido.');
   }
   return url;
+}
+
+function isPublicAddress(address) {
+  if (isIP(address) === 4) {
+    const p = address.split('.').map(Number);
+    const [a,b] = p;
+    if (a === 0 || a === 10 || a === 127 || a >= 224) return false;
+    if (a === 169 && b === 254) return false;
+    if (a === 172 && b >= 16 && b <= 31) return false;
+    if (a === 192 && b === 168) return false;
+    if (a === 100 && b >= 64 && b <= 127) return false;
+    if (a === 192 && b === 0 && p[2] === 0) return false;
+    if (a === 198 && (b === 18 || b === 19)) return false;
+    return true;
+  }
+  if (isIP(address) === 6) {
+    const v = address.toLowerCase();
+    return !(v === '::' || v === '::1' || v.startsWith('fc') || v.startsWith('fd') ||
+      v.startsWith('fe8') || v.startsWith('fe9') || v.startsWith('fea') || v.startsWith('feb') ||
+      v.startsWith('::ffff:'));
+  }
+  return false;
+}
+
+async function assertPublicHost(host) {
+  if (isIP(host)) {
+    if (!isPublicAddress(host)) throw new Error('IP privada o reservada no permitida.');
+    return;
+  }
+  const records = await lookup(host, { all: true, verbatim: true });
+  if (!records.length || records.some(record => !isPublicAddress(record.address))) {
+    throw new Error('El host resuelve a una IP privada o reservada.');
+  }
 }
 
 function readBody(req) {
@@ -49,6 +83,7 @@ const server = http.createServer(async (req, res) => {
   try {
     const input = JSON.parse(await readBody(req));
     const target = validateUrl(String(input.url || ''));
+    await assertPublicHost(target.hostname);
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
       acceptDownloads: false,
@@ -68,10 +103,11 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       const h = requestUrl.hostname.toLowerCase();
-      if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local') || isIP(h)) {
+      if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local')) {
         await route.abort();
         return;
       }
+      try { await assertPublicHost(h); } catch { await route.abort(); return; }
       await route.continue();
     });
     await page.goto(target.toString(), { waitUntil: 'domcontentloaded' });
