@@ -18,7 +18,7 @@ final class ModelGateway
         return $provider;
     }
 
-    public function rawChat(array $messages, ?string $model = null): array
+    public function rawChat(array $messages, ?string $model = null, array $tools = []): array
     {
         $apiKey = Config::requireValue('OPENROUTER_API_KEY');
         $modelId = $model ?: Config::requireValue('OPENROUTER_MODEL');
@@ -29,6 +29,7 @@ final class ModelGateway
             'temperature' => 0.3,
             'max_tokens' => Config::int('AGENT_MAX_TOKENS', 2500, 128, 8000),
         ];
+        if ($tools !== []) { $payload['tools'] = $tools; $payload['tool_choice'] = 'auto'; }
         $headers = [
             'Authorization: Bearer ' . $apiKey,
             'Content-Type: application/json',
