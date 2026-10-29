@@ -62,12 +62,15 @@ function handle_api(): never
             $task = $body['message'] ?? '';
             $mode = $body['mode'] ?? 'general';
             $image = $body['image'] ?? null;
+            $allowWorkspaceWrites = ($body['allow_workspace_writes'] ?? false) === true;
             if (!is_string($task) || !is_string($mode) || ($image !== null && !is_string($image))) {
                 json_response(['error' => 'Tipos de datos no válidos.'], 400);
             }
-            $result = (new Coordinator())->run($task, $mode, $image);
+            $result = (new Coordinator())->run($task, $mode, $image, $allowWorkspaceWrites);
             json_response($result);
         }
+
+        if ($route === 'tasks') json_response(['tasks' => (new Coordinator())->recentTasks(50)]);
 
         if ($route === 'workspace') {
             $tool = new WorkspaceTool();
@@ -130,7 +133,7 @@ $appTitle = htmlspecialchars(env_value('OPENROUTER_APP_TITLE', 'AgentSystem'), E
   </section>
   <div class="notice">Privacidad: la clave de OpenRouter permanece en el servidor local, en <code>.env</code>. Las imágenes que envíes se transmiten al proveedor configurado. No subas secretos ni documentos sensibles.</div>
   <div class="tools">
-    <div class="tool"><label for="mode">Modo de trabajo</label><select id="mode"><option value="general">General</option><option value="research">Investigación web con fuentes</option><option value="vision">Análisis visual</option><option value="coding">Programación</option></select><small>El modo de investigación recupera resultados públicos; verifica los enlaces originales.</small></div>
+    <div class="tool"><label for="mode">Modo de trabajo</label><select id="mode"><option value="general">General</option><option value="research">Investigación web con fuentes</option><option value="vision">Análisis visual</option><option value="coding">Programación con archivos</option><option value="browser">Navegador web (solo lectura)</option></select><small>Investigación usa fuentes públicas; navegador requiere el worker Playwright iniciado y una URL HTTPS en la tarea.</small><label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px"><input id="allow-write" type="checkbox" style="width:auto"> Permitir escritura en workspace/ para tareas de programación</label></div>
     <div class="tool"><label for="image">Imagen opcional</label><input id="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif"><small>PNG, JPEG, WEBP o GIF; máximo aproximado 4,5 MB. El modelo debe admitir visión.</small></div>
   </div>
   <section id="conversation" class="conversation" aria-live="polite"><div class="empty">Escribe una tarea para iniciar una conversación.</div></section>
@@ -138,7 +141,7 @@ $appTitle = htmlspecialchars(env_value('OPENROUTER_APP_TITLE', 'AgentSystem'), E
   <div class="foot">Las respuestas y el código generado deben revisarse. La navegación y ejecución autónoma aún son limitadas.</div>
 </main>
 <script>
-const form=document.querySelector('#chat-form'),input=document.querySelector('#message'),send=document.querySelector('#send'),conversation=document.querySelector('#conversation'),mode=document.querySelector('#mode'),imageInput=document.querySelector('#image');
+const form=document.querySelector('#chat-form'),input=document.querySelector('#message'),send=document.querySelector('#send'),conversation=document.querySelector('#conversation'),mode=document.querySelector('#mode'),imageInput=document.querySelector('#image'),allowWrite=document.querySelector('#allow-write');
 function addMessage(text,kind){const empty=conversation.querySelector('.empty');if(empty)empty.remove();const node=document.createElement('div');node.className='msg '+kind;node.textContent=text;conversation.appendChild(node);node.scrollIntoView({behavior:'smooth',block:'nearest'});return node;}
 function readImage(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error('No se pudo leer la imagen.'));reader.readAsDataURL(file);});}
 form.addEventListener('submit',async event=>{
@@ -147,7 +150,7 @@ form.addEventListener('submit',async event=>{
  addMessage((message||'Analiza esta imagen.')+(file?'\n[Imagen: '+file.name+']':''),'user');input.value='';send.disabled=true;send.textContent='Procesando…';
  const placeholder=addMessage('Preparando la tarea…','assistant');
  try{
-  const payload={message:message||'Analiza esta imagen.',mode:mode.value};
+  const payload={message:message||'Analiza esta imagen.',mode:mode.value,allow_workspace_writes:allowWrite.checked};
   if(file)payload.image=await readImage(file);
   const response=await fetch('?api=run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   const data=await response.json();
