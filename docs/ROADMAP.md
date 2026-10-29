@@ -1,44 +1,52 @@
 # AgentSystem roadmap
 
 ## Phase 0 — foundation
-- [x] Establish private repository and architecture.
-- [x] Add environment template and secret-safe ignore rules.
-- [x] Define milestones and safety boundaries.
-- [x] Add first local chat UI and OpenRouter-compatible gateway.
-- [ ] Verify PHP/Composer installation and provider connectivity on the user's computer.
+- [x] Private repository, architecture, environment template, and secret ignore rules.
+- [x] Local chat UI and OpenRouter-compatible gateway.
+- [x] Composer, PHP syntax, smoke, and Node syntax checks.
+- [ ] Run on the user's Windows machine with a real model key.
 
-## Phase 1 — harden model gateway
-- [ ] Validate configuration and provider model IDs.
-- [ ] Add mocked HTTP tests, better error normalization, request logging without secrets.
-- [ ] Add rate/size limits and a local session boundary.
-- [ ] Verify provider response format and usage metadata.
+## Phase 1 — model gateway
+- [x] Configurable OpenRouter requests and timeouts.
+- [x] Configurable multimodal model override.
+- [ ] Add rate limiting, request IDs, and mocked HTTP contract tests.
+- [ ] Verify live model and quota behavior.
 
-## Phase 2 — Neuron orchestration
-- [ ] Implement one Neuron agent using the installed package's actual API.
-- [ ] Add coordinator and named specialist registry.
-- [ ] Add task state, cancellation, timeouts, token/cost limits.
-- [ ] Prevent unbounded agent loops.
+## Phase 2 — coordinator and agents
+- [x] Neuron AI agent wrapper for general tasks.
+- [x] Coordinator with bounded tool-call rounds and specialist modes.
+- [x] Explicit tool schemas and mode-specific permissions.
+- [x] Metadata-only task audit log.
+- [ ] Multi-agent delegation/planning with per-agent budgets and integration tests.
 
 ## Phase 3 — research and vision
-- [ ] Research tool with URLs, retrieval timestamps, and source list.
-- [ ] Image/document input with upload limits and MIME validation.
-- [ ] Keep citations and mark uncertain or unsupported claims.
+- [x] Research mode with public search results and source URLs.
+- [x] HTTPS page extraction with response/time limits and private-host checks.
+- [x] Image input for multimodal OpenRouter models.
+- [x] Browser screenshot can be passed to a configurable vision model.
+- [ ] Improve search-provider resilience and verify live multimodal behavior.
 
 ## Phase 4 — coding workspace
-- [ ] Sandboxed project workspace, file allowlist, diff preview, test runner.
-- [ ] No unrestricted host filesystem access.
-- [ ] Require policy checks and user approval before new code executes.
+- [x] Workspace file listing, reading, and writing.
+- [x] Path traversal and file-size limits.
+- [x] Writing tools are offered only when explicitly enabled in the UI.
+- [x] Smoke tests for workspace boundaries and metadata logging.
+- [ ] Diff preview, backups, rollback, and approval per file.
+- [ ] Isolated test execution; arbitrary host shell execution remains disabled.
 
 ## Phase 5 — browser operator
-- [ ] Separate Node.js + Playwright worker.
-- [ ] Dedicated browser profile and restricted downloads.
-- [ ] Screenshots and page summaries returned to coordinator.
-- [ ] Confirm before form submission, purchases, messages, account changes, deletion, or publication.
+- [x] Separate Node.js + Playwright worker.
+- [x] Read-only navigation, visible text extraction, and screenshot capture.
+- [x] Browser mode in the coordinator.
+- [x] DNS/IP checks for private and reserved addresses.
+- [ ] Validate screenshot-to-model flow against a live worker.
+- [ ] Controlled interactions with explicit approval; current worker does not click or submit forms.
 
-## Phase 6 — durable memory and usability
-- [ ] SQLite task history, settings UI, logs, export/delete controls.
-- [ ] User-selectable model and provider quota/error reporting.
-- [ ] Regression tests and documented Windows setup.
+## Phase 6 — memory and usability
+- [x] Metadata-only task history; prompts, images, responses, and keys are excluded.
+- [x] Responsive UI with task modes and optional image upload.
+- [ ] History view, clear/export controls, and opt-in conversation memory.
+- [ ] Per-model budgets, cancellation, and regression tests.
 
 ## Definition of done
-A capability is complete only when implementation, permissions, error handling, and tests exist. A checkbox is not complete just because a design exists.
+A capability is not production-ready until implementation, permissions, failure handling, and tests exist. Research and browser adapters are experimental; run them locally only.
