@@ -16,11 +16,19 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
-          extensions: curl, mbstring
+          extensions: curl, mbstring, dom
           tools: composer:v2
       - name: Validate Composer manifest
         run: composer validate --no-check-publish
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
-      - name: Syntax check entry point
-        run: php -l public/index.php
+      - name: Syntax check all PHP files
+        run: find src public tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Smoke tests
+        run: php tests/smoke.php
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check browser worker syntax
+        run: node --check worker/worker.js
