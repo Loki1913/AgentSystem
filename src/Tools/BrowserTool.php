@@ -10,8 +10,8 @@ final class BrowserTool
         if (!is_array($parts) || strtolower((string) ($parts['scheme'] ?? '')) !== 'https' || empty($parts['host'])) {
             throw new \InvalidArgumentException('Introduce una URL HTTPS pública.');
         }
-        $base = rtrim(\\AgentSystem\\Config::get('BROWSER_WORKER_URL', 'http://127.0.0.1:8091'), '/');
-        $token = \\AgentSystem\\Config::get('BROWSER_WORKER_TOKEN');
+        $base = rtrim(\AgentSystem\Config::get('BROWSER_WORKER_URL', 'http://127.0.0.1:8091'), '/');
+        $token = \AgentSystem\Config::get('BROWSER_WORKER_TOKEN');
         $headers = ['Content-Type: application/json', 'Accept: application/json'];
         if ($token !== '') $headers[] = 'Authorization: Bearer ' . $token;
         $ch = curl_init($base . '/inspect');
