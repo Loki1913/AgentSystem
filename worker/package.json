@@ -1,0 +1,14 @@
+{
+  "name": "agentsystem-browser-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Restricted, local-only browser inspection worker for AgentSystem",
+  "scripts": {
+    "start": "node worker.js",
+    "install-browser": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.55.0"
+  }
+}
