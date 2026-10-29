@@ -113,7 +113,7 @@ $appTitle = htmlspecialchars(env_value('OPENROUTER_APP_TITLE', 'AgentSystem'), E
     .brand{display:flex;align-items:center;gap:13px}.mark{width:42px;height:42px;border:1px solid #465174;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,#222b48,#121621);color:var(--accent);font-weight:800;font-size:20px}
     h1{font-size:20px;letter-spacing:-.04em;margin:0}.sub{font-size:12px;color:var(--muted);margin-top:2px}.status{font-size:12px;color:#c7d2fe;border:1px solid #343e60;background:#151b2b;padding:6px 10px;border-radius:999px}
     .intro{margin:12px 0 18px}.eyebrow{color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}.intro h2{font-size:clamp(27px,5vw,40px);line-height:1.12;letter-spacing:-.05em;margin:9px 0}.intro p{color:var(--muted);max-width:720px;margin:0}
-    .notice{background:#171a22;border:1px solid var(--line);border-radius:12px;padding:11px 14px;color:#b9c2d3;font-size:12px;margin:16px 0}
+    .notice{background:#171a22;border:1px solid var(--line);border-radius:12px;padding:11px 14px;color:#b9c2d3;font-size:12px;margin:16px 0}.history-button{background:#1a2030;color:#d8def0;border:1px solid #343c4e;margin:0 0 12px;align-self:flex-start}.history-panel{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:14px;background:#0e121a}.history-item{padding:9px 0;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}.history-item:last-child{border-bottom:0}
     .tools{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 16px}.tool{border:1px solid var(--line);border-radius:13px;background:#11151e;padding:12px}.tool label{display:block;color:#d7ddef;font-size:12px;margin-bottom:7px}.tool select,.tool input{width:100%;background:#0c1018;border:1px solid #2d3547;border-radius:9px;color:var(--text);padding:10px;font:inherit}.tool small{display:block;color:var(--muted);margin-top:6px;font-size:11px}
     .conversation{display:flex;flex-direction:column;gap:12px;flex:1;min-height:190px;margin:5px 0 18px}.empty{border:1px dashed #303849;border-radius:16px;padding:24px;color:var(--muted);text-align:center}.msg{max-width:92%;padding:14px 16px;border:1px solid var(--line);border-radius:15px;white-space:pre-wrap;overflow-wrap:anywhere}.user{align-self:flex-end;background:#1c2440;border-color:#333f66}.assistant{align-self:flex-start;background:var(--panel)}.error{border-color:#783c49;color:#ffc5cd}.sources{font-size:12px;color:var(--muted);margin-top:10px}.sources a{color:#c7d2fe;display:block;margin-top:5px;overflow-wrap:anywhere}
     form{border:1px solid #343c4e;background:#11151e;padding:10px;border-radius:17px;display:flex;gap:10px;align-items:flex-end;box-shadow:0 14px 50px #0003}textarea{resize:vertical;min-height:56px;max-height:220px;flex:1;background:transparent;color:var(--text);border:0;outline:0;padding:11px;font:inherit}button{background:var(--accent);color:#111526;border:0;border-radius:11px;padding:12px 17px;font-weight:750;cursor:pointer;min-height:44px}button:disabled{opacity:.5;cursor:wait}.foot{font-size:11px;color:#6f7b91;text-align:center;margin-top:12px}
@@ -132,6 +132,8 @@ $appTitle = htmlspecialchars(env_value('OPENROUTER_APP_TITLE', 'AgentSystem'), E
     <p>Elige un modo para orientar la tarea. Las herramientas experimentales tienen límites; el sistema no realiza acciones externas sensibles ni ejecuta código generado automáticamente.</p>
   </section>
   <div class="notice">Privacidad: la clave de OpenRouter permanece en el servidor local, en <code>.env</code>. Las imágenes que envíes se transmiten al proveedor configurado. No subas secretos ni documentos sensibles.</div>
+  <button id="history-button" type="button" class="history-button">Ver historial de tareas</button>
+  <section id="history-panel" class="history-panel" hidden aria-live="polite"></section>
   <div class="tools">
     <div class="tool"><label for="mode">Modo de trabajo</label><select id="mode"><option value="general">General</option><option value="research">Investigación web con fuentes</option><option value="vision">Análisis visual</option><option value="coding">Programación con archivos</option><option value="browser">Navegador web (solo lectura)</option></select><small>Investigación usa fuentes públicas; navegador requiere el worker Playwright iniciado y una URL HTTPS en la tarea.</small><label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px"><input id="allow-write" type="checkbox" style="width:auto"> Permitir escritura en workspace/ para tareas de programación</label></div>
     <div class="tool"><label for="image">Imagen opcional</label><input id="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif"><small>PNG, JPEG, WEBP o GIF; máximo aproximado 4,5 MB. El modelo debe admitir visión.</small></div>
@@ -141,8 +143,23 @@ $appTitle = htmlspecialchars(env_value('OPENROUTER_APP_TITLE', 'AgentSystem'), E
   <div class="foot">Las respuestas y el código generado deben revisarse. La navegación y ejecución autónoma aún son limitadas.</div>
 </main>
 <script>
-const form=document.querySelector('#chat-form'),input=document.querySelector('#message'),send=document.querySelector('#send'),conversation=document.querySelector('#conversation'),mode=document.querySelector('#mode'),imageInput=document.querySelector('#image'),allowWrite=document.querySelector('#allow-write');
+const form=document.querySelector('#chat-form'),input=document.querySelector('#message'),send=document.querySelector('#send'),conversation=document.querySelector('#conversation'),mode=document.querySelector('#mode'),imageInput=document.querySelector('#image'),allowWrite=document.querySelector('#allow-write'),historyButton=document.querySelector('#history-button'),historyPanel=document.querySelector('#history-panel');
 function addMessage(text,kind){const empty=conversation.querySelector('.empty');if(empty)empty.remove();const node=document.createElement('div');node.className='msg '+kind;node.textContent=text;conversation.appendChild(node);node.scrollIntoView({behavior:'smooth',block:'nearest'});return node;}
+historyButton.addEventListener('click',async()=>{
+ historyPanel.hidden=false;historyPanel.textContent='Cargando historial…';
+ try{
+  const response=await fetch('?api=tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+  const data=await response.json();if(!response.ok)throw new Error(data.error||'No se pudo cargar el historial.');
+  historyPanel.textContent='';
+  const heading=document.createElement('strong');heading.textContent='Últimas tareas (solo metadatos)';historyPanel.appendChild(heading);
+  if(!data.tasks||!data.tasks.length){const empty=document.createElement('div');empty.className='history-item';empty.textContent='Todavía no hay tareas registradas.';historyPanel.appendChild(empty);}
+  for(const item of (data.tasks||[])){
+   const row=document.createElement('div');row.className='history-item';
+   row.textContent=[item.at,item.mode,item.status,item.model,item.duration_ms+' ms',Array.isArray(item.tools)?item.tools.join(', '):''].filter(Boolean).join(' · ');
+   historyPanel.appendChild(row);
+  }
+ }catch(error){historyPanel.textContent=String(error.message||'Error al cargar el historial.');}
+});
 function readImage(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error('No se pudo leer la imagen.'));reader.readAsDataURL(file);});}
 form.addEventListener('submit',async event=>{
  event.preventDefault();const message=input.value.trim(),file=imageInput.files[0];if((!message&&!file)||send.disabled)return;
