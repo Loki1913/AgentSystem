@@ -1,45 +1,45 @@
-# Architecture and safety boundaries
+# Arquitectura y Límites de Seguridad de AgentSystem
 
-## Request flow
+## Flujo de Orquestación Multiagente
 
 ```text
-Browser UI
-  -> local PHP API
-    -> input validation / limits
-      -> coordinator
-        -> Neuron agent or workflow
-          -> model gateway (OpenRouter)
-          -> approved tools
-    <- structured result + source links + task status
-  <- UI rendering (text escaped; links validated)
+Cliente Web (UI) / REST API
+  -> Servidor Express (Entrada segura, validación de tipos y sanitización)
+    -> Coordinator (Motor Central de Orquestación)
+      -> Generador de Planes (Orchestrator Agent - DAG de subtareas)
+        -> Especialistas Asignados:
+             ├── Research Agent (DuckDuckGo, Scraping Seguro, Anti-SSRF)
+             ├── Coding Agent (Workspace Aislado, Control de Diffs & Rollback)
+             ├── Browser Agent (Playwright Worker / Inspección DOM integrada)
+             ├── Vision Agent (Entrada Multimodal, Análisis Visual)
+             ├── QA Agent (Verificación de Requisitos, Comprobación de Calidad)
+             └── Security Agent (Auditoría OWASP, Detección de Secretos)
+        -> ModelGateway (OpenRouter / Modelos Gratuitos / Motor de Razonamiento Autónomo)
+      -> MemoryStore (Task Logs en tasks.jsonl, Memoria de Proyecto, Base de Conocimiento)
+  <- Resultado Estructurado (Plan, Pasos, Logs de Actividad, Fuentes, Diffs)
 ```
 
-## Components
+## Especialización de Agentes
 
-- **Presentation:** local web UI; does not receive provider secrets.
-- **HTTP API:** validates request method, JSON shape, body size, and session/origin assumptions.
-- **Model gateway:** provider-specific HTTP details and error normalization.
-- **Coordinator:** decides which named agent/workflow to invoke; enforces step and time limits.
-- **Tools:** small, typed operations with declared inputs/outputs and permission levels.
-- **Workers:** browser and code execution are isolated processes, not capabilities granted to every agent.
-- **Audit:** records task IDs, timings, tool names, and outcomes without recording secrets.
+1. **Orchestrator / Manager**: Analiza el objetivo global, genera el plan descompuesto en subtareas estructuradas y supervisa el progreso.
+2. **Research Agent**: Realiza búsquedas públicas en la web, extrae texto limpio de URLs HTTPS, valida orígenes y cita fuentes verificadas.
+3. **Coding Agent**: Trabaja dentro del sandbox `workspace/`, lee archivos, produce modificaciones atómicas con cálculo de diffs y permite reversión (rollback).
+4. **Vision Agent**: Analiza imágenes y diagramas multimodales sin degradación destructiva.
+5. **Browser Agent**: Inspecciona páginas web autorizadas, formularios interactivos y enlaces.
+6. **QA Agent**: Evalúa cumplimiento de objetivos y revisa la integridad de los entregables.
+7. **Security Agent**: Audita código en busca de vulnerabilidades (inyección de comandos, eval inseguro, rutas ascendentes y credenciales expuestas).
 
-## Trust model
+## Niveles de Memoria
 
-Prompt injection can appear in web pages, files, screenshots, code comments, and tool outputs. Such content is data, not authority. The system must not let retrieved content override system policy or grant permissions.
+- **Memoria de Tarea**: Contexto de ejecución volátil, acumulación de salidas de pasos y mensajes de herramientas.
+- **Memoria de Proyecto**: Decisiones arquitectónicas y notas almacenadas en `storage/project_memory.json`.
+- **Memoria de Conocimiento**: Investigaciones, resúmenes y citas en `storage/knowledge_base.json`.
+- **Registro Histórico de Auditoría**: Metadatos de tareas (duración, modo, modelo, herramientas ejecutadas) en `storage/tasks.jsonl`.
 
-## Approval policy
+## Modelo de Confianza y Políticas de Seguridad
 
-Automatic: read-only analysis, local calculations, searching, drafting, and tests inside the project workspace.
-
-Approval required: writing outside the workspace, executing new code, installing dependencies, sending messages, submitting forms, publishing, changing accounts, deleting data, or spending money.
-
-Denied by default: secret extraction, credential disclosure, unrestricted shell access, silent browser actions in logged-in profiles, and unbounded autonomous loops.
-
-## Operational limits
-
-- All network calls need timeouts.
-- All tools need input/output size limits.
-- All agent loops need a maximum step count.
-- Provider model IDs are configuration, not hard-coded assumptions.
-- Model output is untrusted and must be validated before it reaches tools.
+- Todo contenido recuperado de Internet o del workspace es considerado dato no confiable (protección contra Prompt Injection).
+- El acceso a archivos está estrictamente confinado dentro de `workspace/`.
+- Protección anti-SSRF mediante resolución DNS y validación de rangos de direcciones IP privadas.
+- Las modificaciones de código generan copias de seguridad inmediatas para permitir rollback instantáneo.
+- Las credenciales nunca se persisten en logs ni se exponen a la interfaz cliente.

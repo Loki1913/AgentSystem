@@ -1,43 +1,55 @@
 # AgentSystem
 
-**Espacio personal de agentes de IA** con PHP, Neuron AI, OpenRouter y un worker Playwright separado.
+**Plataforma autónoma de agentes de inteligencia artificial** con arquitectura multiagente, OpenRouter, gestión aislada de workspace y worker de navegador Playwright.
 
-> **Estado actual:** prototipo funcional en desarrollo. La base, los modos de tarea y las herramientas iniciales están implementados; la integración real con una cuenta de OpenRouter y el worker de navegador todavía debe probarse en el equipo del usuario.
+## Capacidades Principales
 
-## Funciones implementadas
-- Interfaz local en español con modos General, Investigación, Visión, Programación y Navegador.
-- Neuron AI como agente para el modo general.
-- Gateway OpenRouter configurable y modelo multimodal opcional.
-- Investigación con resultados web, extracción limitada de páginas HTTPS y enlaces de fuentes.
-- Entrada de imágenes para modelos multimodales.
-- Llamadas a herramientas limitadas por modo y máximo de rondas.
-- Workspace aislado con lectura/listado y escritura opcional, habilitada explícitamente.
-- Worker Node.js + Playwright para inspección de solo lectura, extracción de texto y captura de pantalla.
-- Historial local que registra solo metadatos de las tareas, no los prompts ni las respuestas.
-- GitHub Actions para validar Composer, sintaxis PHP, pruebas smoke y sintaxis Node.
+- **Orquestación Multiagente**: División automática de objetivos en planes de ejecución y coordinación entre especialistas:
+  - 🎯 **Orchestrator Agent**: Planificación estructurada y supervisión.
+  - 🔍 **Research Agent**: Investigación web con fuentes verificadas y prevención de alucinaciones.
+  - 💻 **Coding Agent**: Inspección de proyectos, modificaciones atómicas, diffs y rollback en `workspace/`.
+  - 👁️ **Vision Agent**: Análisis multimodal de capturas, diagramas y mockups.
+  - 🌐 **Browser Agent**: Inspección de páginas web públicas, formularios y enlaces.
+  - 🛡️ **Security Agent**: Auditoría contra vulnerabilidades OWASP y detección de secretos expuestos.
+  - ✅ **QA Agent**: Validación de entregables, cumplimiento de requisitos y control de calidad.
+- **Memoria Multinivel**:
+  - Memoria de tarea en tiempo de ejecución.
+  - Memoria persistente de proyecto (`storage/project_memory.json`).
+  - Base de conocimientos investigados (`storage/knowledge_base.json`).
+  - Registro de auditoría de tareas (`storage/tasks.jsonl`).
+- **Gateway de Modelos**:
+  - Compatible con OpenRouter y catálogo de modelos gratuitos (`meta-llama/llama-3.3-70b-instruct:free`, `qwen/qwen-2.5-coder-32b-instruct:free`, `google/gemini-2.0-flash-exp:free`).
+  - Motor autónomo de razonamiento local de respaldo integrado.
+- **Seguridad Robusta**:
+  - Protección anti-SSRF con validación de IPs privadas.
+  - Confinamiento estricto en carpeta aislada `workspace/`.
+  - Copias de seguridad automáticas para rollback de archivos modificados.
 
-## Limitaciones actuales
-- No opera libremente las aplicaciones del escritorio ni controla sesiones autenticadas.
-- El navegador no hace clic, rellena formularios ni envía información.
-- No ejecuta comandos arbitrarios ni código generado.
-- Algunos modelos gratuitos no admiten visión o llamadas a herramientas, y sus cuotas cambian.
-- La búsqueda web es experimental y sus resultados deben verificarse en las fuentes originales.
-- No se ha probado todavía una llamada real a OpenRouter desde el equipo del usuario.
+## Inicio Rápido
 
-## Inicio rápido (Windows)
-Requisitos: PHP 8.2+ con `curl`, `mbstring` y `dom`; Composer 2. Para el navegador: Node.js 20+.
-
-1. Copia `.env.example` a `.env`.
-2. Define `OPENROUTER_API_KEY` y `OPENROUTER_MODEL`. Opcionalmente define `OPENROUTER_VISION_MODEL`.
-3. Ejecuta `composer install`.
-4. Ejecuta `php tests/smoke.php`.
-5. Ejecuta `php -S 127.0.0.1:8080 -t public`.
-6. Abre http://127.0.0.1:8080.
-
-Para configurar Playwright, sigue [docs/SETUP-WINDOWS.md](docs/SETUP-WINDOWS.md). Nunca subas `.env` ni compartas la clave.
+1. Copia `.env.example` a `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+2. (Opcional) Define tu clave `OPENROUTER_API_KEY` en `.env` para usar modelos LLM remotos. El sistema opera de forma autónoma con su motor integrado si no se define.
+3. Instala dependencias y compila:
+   ```bash
+   npm install
+   npm run build
+   ```
+4. Ejecuta las pruebas automatizadas:
+   ```bash
+   npm test
+   ```
+5. Inicia el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+   Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
 ## Documentación
-- [Arquitectura](docs/ARCHITECTURE.md)
-- [Hoja de ruta](docs/ROADMAP.md)
-- [Herramientas y permisos](docs/TOOLS.md)
-- [Instalación en Windows](docs/SETUP-WINDOWS.md)
+
+- [Arquitectura y Seguridad](docs/ARCHITECTURE.md)
+- [Hoja de Ruta](docs/ROADMAP.md)
+- [Herramientas y Permisos](docs/TOOLS.md)
+- [Batería de Pruebas](tests/README.md)

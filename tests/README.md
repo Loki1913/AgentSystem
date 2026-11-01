@@ -1,5 +1,15 @@
-# Verification
+# Batería de Pruebas Automatizadas de AgentSystem
 
-Run `composer validate --no-check-publish` and `composer check` after installing PHP dependencies. The GitHub Actions workflow runs Composer validation and a PHP syntax check. Integration tests that call OpenRouter are intentionally not automatic because they need a real API key and can consume quota.
+Este directorio contiene las pruebas de validación automatizada para la plataforma de agentes:
 
-For the browser worker, run `npm install`, `npm run install-browser`, then `npm start` inside `worker/`. Test only with public HTTPS pages. Keep the worker bound to loopback.
+- `smoke.test.ts`: Pruebas integrales de:
+  1. **WorkspaceTool**: Aislamiento, lectura, escritura de archivos, cálculo de diffs y rollback.
+  2. **SecurityAuditTool**: Detección de vulnerabilidades OWASP (eval, concatenación de comandos, secretos expuestos, evasión de rutas).
+  3. **MemoryStore**: Registro estructurado en `storage/tasks.jsonl` y notas persistentes de proyecto.
+  4. **Coordinator**: Generación de planes multi-agente, orquestación, bitácora de actividad y consolidación de respuestas.
+
+## Ejecución
+
+```bash
+npm test
+```

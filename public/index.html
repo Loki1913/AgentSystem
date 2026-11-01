@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>AgentSystem</title>
+  <meta name="description" content="Espacio personal de agentes de IA con modos General, Investigación, Visión, Programación y Navegador.">
+  <meta property="og:title" content="AgentSystem">
+  <meta property="og:description" content="Espacio personal de agentes de IA con modos General, Investigación, Visión, Programación y Navegador.">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090b10;
+      --panel: #11151e;
+      --panel-alt: #161c28;
+      --line: #252c3a;
+      --line-active: #3c4960;
+      --text: #edf1fa;
+      --muted: #929db1;
+      --accent: #a5b4fc;
+      --accent-hover: #c7d2fe;
+      --green: #4ade80;
+      --amber: #fbbf24;
+      --purple: #c084fc;
+      --red: #f87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(ellipse at top, #171d30 0%, var(--bg) 55%);
+      color: var(--text);
+      font: 14.5px/1.55 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      min-height: 100vh;
+    }
+    .shell {
+      max-width: 1040px;
+      margin: auto;
+      padding: 24px 20px 24px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .mark {
+      width: 42px;
+      height: 42px;
+      border: 1px solid #465174;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, #222b48, #121621);
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 20px;
+      box-shadow: 0 4px 14px #0004;
+    }
+    h1 { font-size: 20px; letter-spacing: -0.04em; margin: 0; }
+    .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .top-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .status {
+      font-size: 12px;
+      color: #c7d2fe;
+      border: 1px solid #343e60;
+      background: #151b2b;
+      padding: 6px 12px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block;
+    }
+    .btn-secondary {
+      background: #1a2030;
+      color: #d8def0;
+      border: 1px solid #343c4e;
+      border-radius: 9px;
+      padding: 6px 11px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .btn-secondary:hover { background: #222b40; color: #fff; }
+
+    .intro { margin: 8px 0 16px; }
+    .eyebrow {
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    .intro h2 {
+      font-size: clamp(24px, 4vw, 34px);
+      line-height: 1.15;
+      letter-spacing: -0.04em;
+      margin: 6px 0;
+    }
+    .intro p { color: var(--muted); max-width: 840px; margin: 0; font-size: 14px; }
+
+    .notice {
+      background: #151922;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: #b9c2d3;
+      font-size: 12px;
+      margin: 12px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Tools & controls grid */
+    .tools {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 10px 0 16px;
+    }
+    .tool {
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--panel);
+      padding: 13px;
+    }
+    .tool label {
+      display: block;
+      color: #d7ddef;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 7px;
+    }
+    .tool select, .tool input[type="file"], .tool input[type="text"] {
+      width: 100%;
+      background: #0c1018;
+      border: 1px solid #2d3547;
+      border-radius: 9px;
+      color: var(--text);
+      padding: 9px 10px;
+      font: inherit;
+      font-size: 13px;
+    }
+    .tool select:focus, .tool input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .tool small {
+      display: block;
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 11px;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #cad3ea;
+    }
+
+    /* Conversation thread */
+    .conversation {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+      min-height: 220px;
+      margin: 6px 0 18px;
+    }
+    .empty {
+      border: 1px dashed #303849;
+      border-radius: 16px;
+      padding: 34px 20px;
+      color: var(--muted);
+      text-align: center;
+      background: #0e121a44;
+    }
+    .empty-badge {
+      display: inline-block;
+      margin-bottom: 8px;
+      padding: 4px 10px;
+      background: #1e2638;
+      border-radius: 999px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .msg {
+      max-width: 96%;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      box-shadow: 0 4px 16px #0002;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: #1c2440;
+      border-color: #333f66;
+    }
+    .msg.assistant {
+      align-self: flex-start;
+      background: var(--panel);
+      width: 100%;
+    }
+    .msg.error {
+      border-color: #783c49;
+      color: #ffc5cd;
+      background: #201317;
+    }
+
+    /* Reasoning / Thinking Box */
+    .reasoning-box {
+      margin-top: 12px;
+      border: 1px solid #3730a3;
+      border-radius: 11px;
+      background: #0c0e1a;
+      overflow: hidden;
+    }
+    .reasoning-summary {
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #c7d2fe;
+      background: #14172e;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    .reasoning-content {
+      padding: 12px 14px;
+      font-size: 12.5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #a5b4fc;
+      background: #090a14;
+      white-space: pre-wrap;
+      border-top: 1px solid #282463;
+      line-height: 1.5;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    /* Execution Plan display */
+    .plan-card {
+      margin-top: 14px;
+      border: 1px solid #2e384d;
+      border-radius: 12px;
+      background: #0b0f17;
+      padding: 12px 14px;
+    }
+    .plan-header {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .plan-step {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 7px 0;
+      border-bottom: 1px solid #1c2333;
+      font-size: 13px;
+    }
+    .plan-step:last-child { border-bottom: 0; }
+    .step-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      min-width: 72px;
+      text-align: center;
+    }
+    .badge-completed { background: #064e3b; color: #6ee7b7; border: 1px solid #047857; }
+    .badge-running { background: #1e3a8a; color: #93c5fd; border: 1px solid #2563eb; }
+    .badge-pending { background: #1f2937; color: #9ca3af; border: 1px solid #374151; }
+    .badge-failed { background: #7f1d1d; color: #fca5a5; border: 1px solid #b91c1c; }
+
+    /* Sources and files */
+    .sources {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+    .sources-title { font-weight: 700; color: #d8def0; margin-bottom: 6px; }
+    .sources a {
+      color: #c7d2fe;
+      display: block;
+      margin-top: 5px;
+      overflow-wrap: anywhere;
+      text-decoration: none;
+      padding: 5px 8px;
+      background: #141926;
+      border-radius: 6px;
+      border: 1px solid #252e42;
+    }
+    .sources a:hover { background: #1c2338; text-decoration: underline; }
+
+    .agent-tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      background: #1d2538;
+      border: 1px solid #343d57;
+      border-radius: 6px;
+      color: #cad4f3;
+      margin-right: 6px;
+      margin-top: 4px;
+    }
+
+    /* Sliding Panels */
+    .slide-panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      background: #0e121a;
+      box-shadow: 0 10px 30px #0004;
+    }
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--accent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .history-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #1b2230;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .history-item:last-child { border-bottom: 0; }
+
+    /* Workspace Explorer */
+    .ws-files {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .ws-file-chip {
+      background: #141a26;
+      border: 1px solid #283248;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #d1d9ec;
+    }
+    .ws-file-chip:hover { background: #1e2638; border-color: var(--accent); }
+    .ws-editor {
+      width: 100%;
+      height: 180px;
+      background: #080a0f;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: #93c5fd;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      padding: 10px;
+      resize: vertical;
+      margin-top: 8px;
+    }
+
+    /* Input form */
+    form {
+      border: 1px solid #343c4e;
+      background: var(--panel);
+      padding: 10px 12px;
+      border-radius: 17px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      box-shadow: 0 14px 50px #0004;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 56px;
+      max-height: 220px;
+      flex: 1;
+      background: transparent;
+      color: var(--text);
+      border: 0;
+      outline: 0;
+      padding: 10px;
+      font: inherit;
+      font-size: 14.5px;
+    }
+    button[type="submit"] {
+      background: var(--accent);
+      color: #0b0e17;
+      border: 0;
+      border-radius: 11px;
+      padding: 12px 20px;
+      font-weight: 750;
+      font-size: 14px;
+      cursor: pointer;
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background .15s ease;
+    }
+    button[type="submit"]:hover { background: var(--accent-hover); }
+    button:disabled { opacity: .5; cursor: wait; }
+    .foot {
+      font-size: 11px;
+      color: #6f7b91;
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 680px) {
+      .shell { padding: 16px 12px; }
+      .tools { grid-template-columns: 1fr; }
+      .top { flex-direction: column; align-items: flex-start; }
+      .top-actions { width: 100%; justify-content: space-between; }
+      form { align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+<main class="shell">
+  <header class="top">
+    <div class="brand">
+      <div class="mark">A</div>
+      <div>
+        <h1 id="brand-title">AgentSystem</h1>
+        <div class="sub">Ecosistema Universal de Agentes de IA · Nemotron 3 Ultra</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button id="workflows-btn" type="button" class="btn-secondary">🔄 Workflows</button>
+      <button id="integrations-btn" type="button" class="btn-secondary">🔌 Integraciones</button>
+      <button id="tools-btn" type="button" class="btn-secondary">⚙️ Catálogo (32)</button>
+      <button id="bridge-btn" type="button" class="btn-secondary">💻 Local Bridge</button>
+      <button id="ws-btn" type="button" class="btn-secondary">📁 Workspace</button>
+      <button id="history-btn" type="button" class="btn-secondary">📜 Historial</button>
+      <div class="status"><span class="status-dot"></span> <span id="status-label">Nemotron 3 Ultra Activo</span></div>
+    </div>
+  </header>
+
+  <section class="intro">
+    <div class="eyebrow">Cloud Intelligence + Autonomous Multi-Agent Ecosystem</div>
+    <h2>Plataforma integral de trabajo digital y orquestación autónoma.</h2>
+    <p>Impulsado por <strong>nvidia/nemotron-3-ultra-550b-a55b:free</strong> con tokens de razonamiento. Combina asistencia personal, creación de contenido, automatización empresarial y flujos de trabajo autónomos con control estricto de permisos (Nivel 1 al 5).</p>
+  </section>
+
+  <div class="notice">
+    <div><strong>Autonomía y Permisos:</strong> Las operaciones se rigen por 5 niveles de autonomía (Lectura, Preparación, Modificación, Acciones externas y Acciones críticas). Las transacciones y pagos exigen confirmación explícita (Nivel 5).</div>
+  </div>
+
+  <!-- Workflows Panel -->
+  <section id="workflows-panel" class="slide-panel" hidden aria-live="polite">
+    <div class="panel-title">
+      <span>🔄 Motor de Workflows y Automatizaciones</span>
+      <button id="workflows-refresh" class="btn-secondary" style="font-size:11px;">Actualizar</button>
+    </div>
+    <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px;">Procesos multi-paso autónomos con disparadores, dependencias y compuertas de aprobación humana (Human-in-the-Loop).</p>
+    <div id="workflows-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">Cargando workflows disponibles...</div>
+    <div id="workflow-run-status" style="margin-top:10px;font-size:12px;color:#cbd5e1;"></div>
+  </section>
+
+  <!-- Integrations Panel -->
+  <section id="integrations-panel" class="slide-panel" hidden aria-live="polite">
+    <div class="panel-title">
+      <span>🔌 Catálogo de Integraciones y Conectores</span>
+      <button id="integrations-refresh" class="btn-secondary" style="font-size:11px;">Actualizar</button>
+    </div>
+    <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px;">Conexión con servicios externos (Google Workspace, Microsoft 365, Notion, Slack, Discord, HubSpot, WhatsApp, GitHub).</p>
+    <div id="integrations-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;">Cargando integraciones...</div>
+  </section>
+
+  <!-- Local Bridge Panel -->
+  <section id="bridge-panel" class="slide-panel" hidden aria-live="polite">
+    <div class="panel-title">
+      <span>Local Bridge — Conector Seguro para Windows</span>
+      <button id="bridge-refresh" class="btn-secondary" style="font-size:11px;">Actualizar estado</button>
+    </div>
+    <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px;">Conecta tu PC Windows a la nube sin ejecutar modelos locales ni abrir puertos domésticos.</p>
+    <div id="bridge-device-status" style="padding:10px;background:#141926;border-radius:8px;font-size:12px;margin-bottom:10px;">Cargando dispositivos vinculados...</div>
+    <div style="font-size:11.5px;color:#94a3b8;background:#0d111a;padding:8px;border-radius:6px;border:1px solid #1e2638;">
+      <strong>Comando de inicio en Windows:</strong> <code>node bridge/windows-bridge.mjs --server=https://tu-url.run.app --token=bridge_sec_agent_system_2026</code>
+    </div>
+  </section>
+
+  <!-- Tool Registry Panel -->
+  <section id="tools-panel" class="slide-panel" hidden aria-live="polite">
+    <div class="panel-title">
+      <span>⚙️ Catálogo Universal de Herramientas (32 Categorías)</span>
+      <button id="tools-refresh" class="btn-secondary" style="font-size:11px;">Refrescar</button>
+    </div>
+    <div id="tools-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;">Cargando herramientas registradas...</div>
+  </section>
+
+  <!-- Workspace Drawer -->
+  <section id="ws-panel" class="slide-panel" hidden aria-live="polite">
+    <div class="panel-title">
+      <span>Archivos en workspace/ (Aislado)</span>
+      <div>
+        <button id="ws-validate-btn" class="btn-secondary" style="font-size:11px;margin-right:6px;">Validar en Sandbox</button>
+        <button id="ws-refresh" class="btn-secondary" style="font-size:11px;">Actualizar</button>
+      </div>
+    </div>
+    <div id="ws-files-container" class="ws-files">Cargando archivos...</div>
+    <div id="ws-editor-container" hidden style="margin-top:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong id="ws-file-title" style="font-size:12px;color:#cbd5e1;"></strong>
+        <div>
+          <button id="ws-save-btn" class="btn-secondary" style="padding:4px 10px;font-size:11px;">Guardar cambios</button>
+          <button id="ws-rollback-btn" class="btn-secondary" style="padding:4px 10px;font-size:11px;color:#fca5a5;">Revertir versión</button>
+        </div>
+      </div>
+      <textarea id="ws-editor" class="ws-editor" spellcheck="false"></textarea>
+    </div>
+  </section>
+
+  <!-- History Panel -->
+  <section id="history-panel" class="slide-panel" hidden aria-live="polite">
+    <div class="panel-title">
+      <span>Registro histórico de ejecuciones</span>
+      <button id="history-refresh" class="btn-secondary" style="font-size:11px;">Recargar</button>
+    </div>
+    <div id="history-list">Cargando historial…</div>
+  </section>
+
+  <!-- Execution Controls -->
+  <div class="tools">
+    <div class="tool">
+      <label for="mode">Modo de Operación de Agentes</label>
+      <select id="mode">
+        <option value="orchestrated">⚡ Orquestación Multiagente (Nemotron 3 Ultra)</option>
+        <option value="research">🔍 Investigación Web Profunda con Fuentes</option>
+        <option value="coding">💻 Programación y Workspace (Archivos & Diffs)</option>
+        <option value="vision">👁️ Visión y Análisis Multimodal</option>
+        <option value="browser">🌐 Navegador Web (Inspección & DOM)</option>
+        <option value="qa_security">🛡️ Auditoría de Ciberseguridad & QA</option>
+        <option value="general">💬 Asistente General</option>
+      </select>
+      <small id="mode-hint">Orquestación: Nemotron 3 Ultra razona paso a paso y coordina a los especialistas.</small>
+      <label class="checkbox-label">
+        <input id="allow-write" type="checkbox" checked style="width:auto;margin:0;">
+        Permitir al Coding Agent escribir/modificar archivos en <code>workspace/</code> (Nivel 3)
+      </label>
+    </div>
+
+    <div class="tool">
+      <label for="image">Entrada Multimodal (Imagen opcional)</label>
+      <input id="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+      <small>Capturas de pantalla, diagramas de arquitectura o documentos visuales (máx ~4,5 MB).</small>
+      <div style="margin-top:10px;">
+        <label for="model-override" style="margin-bottom:4px;">Modelo orquestador:</label>
+        <select id="model-override" style="padding:6px 10px;font-size:12px;">
+          <option value="nvidia/nemotron-3-ultra-550b-a55b:free">Nvidia Nemotron 3 Ultra (Thinking / Razonamiento)</option>
+          <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B Instruct</option>
+          <option value="qwen/qwen-2.5-coder-32b-instruct:free">Qwen 2.5 Coder 32B</option>
+          <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash</option>
+          <option value="meta-llama/llama-3.2-11b-vision-instruct:free">Llama 3.2 Vision 11B</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages Conversation -->
+  <section id="conversation" class="conversation" aria-live="polite">
+    <div class="empty">
+      <div class="empty-badge">Ecosistema Nemotron 3 Ultra · Razonamiento y Herramientas Activas</div>
+      <div>Escribe un objetivo para iniciar la orquestación autónoma.</div>
+      <div style="font-size:12px;margin-top:6px;color:#7a869e;">Por ejemplo: "Quiero lanzar una tienda de camisetas con plan de marketing y catálogo" o "Monitorea la API y genera un reporte".</div>
+    </div>
+  </section>
+
+  <!-- Input Form -->
+  <form id="chat-form">
+    <textarea id="message" maxlength="25000" placeholder="¿Qué objetivo complejo deseas planificar, razonar o construir?" aria-label="Mensaje" required></textarea>
+    <button id="send" type="submit">Ejecutar ↗</button>
+  </form>
+  <div class="foot">Inferencia en la nube vía OpenRouter. Reasoning tokens y auditoría de workspace activos.</div>
+</main>
+
+<script>
+const form = document.querySelector('#chat-form');
+const input = document.querySelector('#message');
+const send = document.querySelector('#send');
+const conversation = document.querySelector('#conversation');
+const mode = document.querySelector('#mode');
+const modeHint = document.querySelector('#mode-hint');
+const imageInput = document.querySelector('#image');
+const allowWrite = document.querySelector('#allow-write');
+const modelOverride = document.querySelector('#model-override');
+
+const historyBtn = document.querySelector('#history-btn');
+const historyPanel = document.querySelector('#history-panel');
+const historyList = document.querySelector('#history-list');
+const historyRefresh = document.querySelector('#history-refresh');
+
+const wsBtn = document.querySelector('#ws-btn');
+const wsPanel = document.querySelector('#ws-panel');
+const wsRefresh = document.querySelector('#ws-refresh');
+const wsFilesContainer = document.querySelector('#ws-files-container');
+const wsEditorContainer = document.querySelector('#ws-editor-container');
+const wsFileTitle = document.querySelector('#ws-file-title');
+const wsEditor = document.querySelector('#ws-editor');
+const wsSaveBtn = document.querySelector('#ws-save-btn');
+const wsRollbackBtn = document.querySelector('#ws-rollback-btn');
+const wsValidateBtn = document.querySelector('#ws-validate-btn');
+
+const bridgeBtn = document.querySelector('#bridge-btn');
+const bridgePanel = document.querySelector('#bridge-panel');
+const bridgeRefresh = document.querySelector('#bridge-refresh');
+const bridgeDeviceStatus = document.querySelector('#bridge-device-status');
+
+const toolsBtn = document.querySelector('#tools-btn');
+const toolsPanel = document.querySelector('#tools-panel');
+const toolsRefresh = document.querySelector('#tools-refresh');
+const toolsList = document.querySelector('#tools-list');
+
+const workflowsBtn = document.querySelector('#workflows-btn');
+const workflowsPanel = document.querySelector('#workflows-panel');
+const workflowsRefresh = document.querySelector('#workflows-refresh');
+const workflowsList = document.querySelector('#workflows-list');
+const workflowRunStatus = document.querySelector('#workflow-run-status');
+
+const integrationsBtn = document.querySelector('#integrations-btn');
+const integrationsPanel = document.querySelector('#integrations-panel');
+const integrationsRefresh = document.querySelector('#integrations-refresh');
+const integrationsList = document.querySelector('#integrations-list');
+
+let currentActiveFile = '';
+
+const hints = {
+  orchestrated: 'Orquestación: Nemotron 3 Ultra razona paso a paso con thinking tokens y coordina a los especialistas.',
+  research: 'Investigación: realiza búsquedas web, extrae contenido y cita fuentes públicas verificadas.',
+  coding: 'Programación: examina archivos, diseña módulos y actualiza workspace/ con diffs.',
+  vision: 'Visión: analiza capturas, diagramas e interfaces adjuntas.',
+  browser: 'Navegador: inspecciona URLs HTTPS públicas, enlaces y formularios web.',
+  qa_security: 'Seguridad & QA: audita vulnerabilidades OWASP y verifica calidad de entregables.',
+  general: 'General: respuestas directas con razonamiento paso a paso.'
+};
+
+mode.addEventListener('change', () => {
+  modeHint.textContent = hints[mode.value] || '';
+});
+
+// Panel toggle helper
+function togglePanel(panel, loader) {
+  const willShow = panel.hidden;
+  [wsPanel, historyPanel, bridgePanel, toolsPanel, workflowsPanel, integrationsPanel].forEach(p => p.hidden = true);
+  panel.hidden = !willShow;
+  if (!panel.hidden && loader) loader();
+}
+
+workflowsBtn.addEventListener('click', () => togglePanel(workflowsPanel, loadWorkflows));
+workflowsRefresh.addEventListener('click', loadWorkflows);
+
+integrationsBtn.addEventListener('click', () => togglePanel(integrationsPanel, loadIntegrations));
+integrationsRefresh.addEventListener('click', loadIntegrations);
+
+bridgeBtn.addEventListener('click', () => togglePanel(bridgePanel, loadBridgeStatus));
+bridgeRefresh.addEventListener('click', loadBridgeStatus);
+
+toolsBtn.addEventListener('click', () => togglePanel(toolsPanel, loadToolsRegistry));
+toolsRefresh.addEventListener('click', loadToolsRegistry);
+
+wsBtn.addEventListener('click', () => togglePanel(wsPanel, loadWorkspaceFiles));
+wsRefresh.addEventListener('click', loadWorkspaceFiles);
+
+historyBtn.addEventListener('click', () => togglePanel(historyPanel, loadHistory));
+historyRefresh.addEventListener('click', loadHistory);
+
+// Workflows Loader
+async function loadWorkflows() {
+  workflowsList.textContent = 'Cargando workflows disponibles…';
+  try {
+    const res = await fetch('/api/workflows');
+    const data = await res.json();
+    workflowsList.innerHTML = '';
+    for (const wf of (data.workflows || [])) {
+      const card = document.createElement('div');
+      card.style.background = '#141a26';
+      card.style.border = '1px solid #283248';
+      card.style.borderRadius = '9px';
+      card.style.padding = '12px';
+      card.style.fontSize = '12px';
+      card.innerHTML = `
+        <div style="font-weight:700;color:#c7d2fe;font-size:13px;">${wf.title}</div>
+        <div style="color:#94a3b8;margin:4px 0 8px;font-size:11.5px;">${wf.description}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="step-badge badge-running">${wf.steps.length} pasos</span>
+          <button class="btn-secondary" style="font-size:11px;padding:3px 8px;" onclick="runWorkflow('${wf.id}')">Ejecutar Workflow ▶</button>
+        </div>
+      `;
+      workflowsList.appendChild(card);
+    }
+  } catch (err) {
+    workflowsList.textContent = 'Error: ' + err.message;
+  }
+}
+
+window.runWorkflow = async function(id) {
+  workflowRunStatus.textContent = `Ejecutando workflow ${id}…`;
+  try {
+    const res = await fetch(`/api/workflows/${id}/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const data = await res.json();
+    workflowRunStatus.innerHTML = `✔ Workflow completado con estado: <strong style="color:#4ade80;">${data.status}</strong> (${data.logs.length} pasos de bitácora).`;
+    loadWorkspaceFiles();
+  } catch (err) {
+    workflowRunStatus.textContent = 'Error al ejecutar workflow: ' + err.message;
+  }
+};
+
+// Integrations Loader
+async function loadIntegrations() {
+  integrationsList.textContent = 'Cargando integraciones…';
+  try {
+    const res = await fetch('/api/integrations');
+    const data = await res.json();
+    integrationsList.innerHTML = '';
+    for (const s of (data.services || [])) {
+      const card = document.createElement('div');
+      card.style.background = '#141a26';
+      card.style.border = '1px solid #283248';
+      card.style.borderRadius = '9px';
+      card.style.padding = '10px';
+      card.style.fontSize = '12px';
+      const statusColor = s.status === 'configured' ? '#4ade80' : (s.status === 'requires_auth' ? '#fbbf24' : '#94a3b8');
+      card.innerHTML = `
+        <div style="font-weight:700;color:#edf1fa;display:flex;align-items:center;gap:6px;">
+          <span>${s.icon}</span> <span>${s.name}</span>
+        </div>
+        <div style="color:#94a3b8;margin:4px 0;font-size:11px;">${s.description}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+          <span style="font-size:10px;font-weight:700;color:${statusColor};">● ${s.status.toUpperCase()}</span>
+          <button class="btn-secondary" style="font-size:10px;padding:2px 7px;" onclick="toggleIntegration('${s.id}')">${s.status==='configured'?'Desactivar':'Configurar'}</button>
+        </div>
+      `;
+      integrationsList.appendChild(card);
+    }
+  } catch (err) {
+    integrationsList.textContent = 'Error: ' + err.message;
+  }
+}
+
+window.toggleIntegration = async function(id) {
+  try {
+    await fetch(`/api/integrations/${id}/toggle`, { method: 'POST' });
+    loadIntegrations();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+};
+
+// Local Bridge Loader
+async function loadBridgeStatus() {
+  bridgeDeviceStatus.textContent = 'Consultando dispositivos vinculados…';
+  try {
+    const res = await fetch('/api/bridge/devices');
+    const data = await res.json();
+    bridgeDeviceStatus.innerHTML = '';
+    if (!data.devices || !data.devices.length) {
+      bridgeDeviceStatus.textContent = 'No hay dispositivos Windows conectados.';
+      return;
+    }
+    for (const dev of data.devices) {
+      const item = document.createElement('div');
+      item.style.marginBottom = '6px';
+      item.innerHTML = `<strong>${dev.name}</strong> (${dev.os}) · <span style="color:${dev.status==='online'?'#4ade80':'#f87171'};font-weight:700;">● ${dev.status.toUpperCase()}</span><br><small style="color:#94a3b8;">Carpetas autorizadas: ${dev.allowedDirectories.join(', ') || 'Ninguna'}</small>`;
+      bridgeDeviceStatus.appendChild(item);
+    }
+  } catch (err) {
+    bridgeDeviceStatus.textContent = 'Error al cargar bridge: ' + err.message;
+  }
+}
+
+// Universal Tools Registry Loader
+async function loadToolsRegistry() {
+  toolsList.textContent = 'Cargando herramientas universales…';
+  try {
+    const res = await fetch('/api/catalog/tools');
+    const data = await res.json();
+    toolsList.innerHTML = '';
+    for (const t of (data.tools || [])) {
+      const card = document.createElement('div');
+      card.style.background = '#141a26';
+      card.style.border = '1px solid #283248';
+      card.style.borderRadius = '8px';
+      card.style.padding = '8px 10px';
+      card.style.fontSize = '12px';
+      card.innerHTML = `
+        <div style="font-weight:700;color:#c7d2fe;">⚙️ ${t.name}</div>
+        <div style="font-size:11px;color:#94a3b8;margin:3px 0;">${t.description}</div>
+        <span class="step-badge badge-completed">Nivel ${t.autonomyLevel}</span>
+        <span class="step-badge badge-pending">${t.category}</span>
+      `;
+      toolsList.appendChild(card);
+    }
+  } catch (err) {
+    toolsList.textContent = 'Error al cargar herramientas: ' + err.message;
+  }
+}
+
+// Workspace Loader
+async function loadWorkspaceFiles() {
+  wsFilesContainer.textContent = 'Cargando archivos del workspace…';
+  try {
+    const res = await fetch('/api/workspace', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'list' })
+    });
+    const data = await res.json();
+    wsFilesContainer.innerHTML = '';
+    if (!data.files || data.files.length === 0) {
+      wsFilesContainer.innerHTML = '<div style="color:var(--muted);font-size:12px;">Workspace limpio. (0 archivos creados aún en workspace/)</div>';
+      return;
+    }
+    for (const f of data.files) {
+      const chip = document.createElement('div');
+      chip.className = 'ws-file-chip';
+      chip.textContent = '📄 ' + f;
+      chip.onclick = () => openWorkspaceFile(f);
+      wsFilesContainer.appendChild(chip);
+    }
+  } catch (err) {
+    wsFilesContainer.textContent = 'Error al cargar workspace: ' + err.message;
+  }
+}
+
+async function openWorkspaceFile(f) {
+  currentActiveFile = f;
+  wsFileTitle.textContent = 'Editando: ' + f;
+  wsEditorContainer.hidden = false;
+  wsEditor.value = 'Cargando contenido…';
+  try {
+    const res = await fetch('/api/workspace', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'read', path: f })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    wsEditor.value = data.content || '';
+  } catch (err) {
+    wsEditor.value = 'Error al abrir: ' + err.message;
+  }
+}
+
+wsSaveBtn.addEventListener('click', async () => {
+  if (!currentActiveFile) return;
+  try {
+    const res = await fetch('/api/workspace', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'write', path: currentActiveFile, content: wsEditor.value })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    alert('Archivo guardado con éxito. Se generó copia de respaldo para rollback.');
+    loadWorkspaceFiles();
+  } catch (err) {
+    alert('Error al guardar: ' + err.message);
+  }
+});
+
+wsRollbackBtn.addEventListener('click', async () => {
+  if (!currentActiveFile || !confirm('¿Deseas revertir los cambios de este archivo a su versión previa?')) return;
+  try {
+    const res = await fetch('/api/workspace', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'rollback', path: currentActiveFile })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    alert(data.message || 'Archivo revertido.');
+    openWorkspaceFile(currentActiveFile);
+    loadWorkspaceFiles();
+  } catch (err) {
+    alert('No se pudo revertir: ' + err.message);
+  }
+});
+
+wsValidateBtn.addEventListener('click', async () => {
+  if (!currentActiveFile) {
+    alert('Primero selecciona un archivo en el explorador.');
+    return;
+  }
+  try {
+    const res = await fetch('/api/sandbox/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: currentActiveFile })
+    });
+    const data = await res.json();
+    alert(`Resultado Cloud Sandbox:\n${data.output}\nScore de Seguridad: ${data.securityScore}/100`);
+  } catch (err) {
+    alert('Error en sandbox: ' + err.message);
+  }
+});
+
+// History Loader
+async function loadHistory() {
+  historyList.textContent = 'Cargando historial…';
+  try {
+    const res = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ limit: 50 })
+    });
+    const data = await res.json();
+    historyList.innerHTML = '';
+    if (!data.tasks || !data.tasks.length) {
+      historyList.innerHTML = '<div class="history-item">Aún no hay ejecuciones registradas.</div>';
+      return;
+    }
+    for (const item of data.tasks) {
+      const row = document.createElement('div');
+      row.className = 'history-item';
+      const left = document.createElement('div');
+      left.innerHTML = `<strong>${new Date(item.at).toLocaleTimeString()}</strong> · <span style="color:var(--accent);">${item.mode}</span> · <em>${item.status}</em>`;
+      const right = document.createElement('div');
+      right.textContent = `${item.duration_ms} ms · ${item.tools ? item.tools.length : 0} tools`;
+      row.appendChild(left);
+      row.appendChild(right);
+      historyList.appendChild(row);
+    }
+  } catch (err) {
+    historyList.textContent = 'Error: ' + err.message;
+  }
+}
+
+function addMessage(text, kind) {
+  const empty = conversation.querySelector('.empty');
+  if (empty) empty.remove();
+  const node = document.createElement('div');
+  node.className = 'msg ' + kind;
+  node.textContent = text;
+  conversation.appendChild(node);
+  node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  return node;
+}
+
+function readImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo de imagen.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+form.addEventListener('submit', async event => {
+  event.preventDefault();
+  const message = input.value.trim();
+  const file = imageInput.files[0];
+  if ((!message && !file) || send.disabled) return;
+
+  if (file && file.size > 5_000_000) {
+    addMessage('La imagen supera el límite máximo permitido de 5 MB.', 'assistant error');
+    return;
+  }
+
+  const userNotice = (message || 'Analiza esta imagen adjunta.') + (file ? '\n[Imagen adjunta: ' + file.name + ']' : '');
+  addMessage(userNotice, 'user');
+  input.value = '';
+  send.disabled = true;
+  send.textContent = 'Pensando y coordinando…';
+
+  const placeholder = addMessage('Coordinando agentes y analizando con Nemotron 3 Ultra…', 'assistant');
+
+  try {
+    const payload = {
+      message: message || 'Analiza esta imagen.',
+      mode: mode.value,
+      allow_workspace_writes: allowWrite.checked,
+      model: modelOverride.value || undefined
+    };
+    if (file) payload.image = await readImage(file);
+
+    const res = await fetch('/api/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error en la ejecución.');
+
+    placeholder.textContent = data.answer || 'Tarea finalizada.';
+
+    // Render Reasoning / Thinking Box if present
+    if (data.reasoning) {
+      const rBox = document.createElement('div');
+      rBox.className = 'reasoning-box';
+      const summary = document.createElement('div');
+      summary.className = 'reasoning-summary';
+      summary.innerHTML = `<span>💭 Razonamiento del Modelo (Thinking Process)</span><span style="font-size:11px;color:#a5b4fc;">${data.reasoning_tokens ? data.reasoning_tokens + ' tokens' : 'Ver detalle ▾'}</span>`;
+      const rContent = document.createElement('div');
+      rContent.className = 'reasoning-content';
+      rContent.textContent = data.reasoning;
+      summary.onclick = () => {
+        rContent.style.display = rContent.style.display === 'none' ? 'block' : 'none';
+      };
+      rBox.appendChild(summary);
+      rBox.appendChild(rContent);
+      placeholder.insertBefore(rBox, placeholder.firstChild);
+    }
+
+    // Render Execution Plan if present
+    if (data.plan && Array.isArray(data.plan.steps) && data.plan.steps.length > 0) {
+      const planDiv = document.createElement('div');
+      planDiv.className = 'plan-card';
+      planDiv.innerHTML = `<div class="plan-header"><span>Plan de Ejecución Multiagente</span><span>${data.plan.steps.length} pasos</span></div>`;
+      for (const st of data.plan.steps) {
+        const row = document.createElement('div');
+        row.className = 'plan-step';
+        const badgeClass = st.status === 'completed' ? 'badge-completed' : (st.status === 'failed' ? 'badge-failed' : 'badge-running');
+        row.innerHTML = `<span class="step-badge ${badgeClass}">${st.status}</span><div><strong>${st.assignedAgent.toUpperCase()}</strong>: ${st.title}</div>`;
+        planDiv.appendChild(row);
+      }
+      placeholder.appendChild(planDiv);
+    }
+
+    // Render Tools and Agents used
+    if (Array.isArray(data.tools_used) && data.tools_used.length > 0) {
+      const toolBox = document.createElement('div');
+      toolBox.style.marginTop = '12px';
+      toolBox.innerHTML = '<span style="font-size:11px;color:var(--muted);margin-right:6px;">Herramientas ejecutadas:</span>' +
+        data.tools_used.map(t => `<span class="agent-tag">⚙️ ${t}</span>`).join('');
+      placeholder.appendChild(toolBox);
+    }
+
+    // Render Sources
+    if (Array.isArray(data.sources) && data.sources.length > 0) {
+      const sec = document.createElement('div');
+      sec.className = 'sources';
+      sec.innerHTML = '<div class="sources-title">Fuentes recuperadas y verificadas</div>';
+      for (const s of data.sources) {
+        const link = document.createElement('a');
+        link.href = s.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.innerHTML = `<strong>${s.title || s.url}</strong><div style="font-size:11px;color:#94a3b8;margin-top:2px;">${s.snippet || s.url}</div>`;
+        sec.appendChild(link);
+      }
+      placeholder.appendChild(sec);
+    }
+
+    // If workspace files were modified, reload workspace
+    if (data.filesModified && data.filesModified.length > 0) {
+      loadWorkspaceFiles();
+    }
+  } catch (err) {
+    placeholder.textContent = String(err.message || 'No se pudo completar la tarea.');
+    placeholder.classList.add('error');
+  } finally {
+    send.disabled = false;
+    send.textContent = 'Ejecutar ↗';
+    input.focus();
+  }
+});
+
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    form.requestSubmit();
+  }
+});
+</script>
+</body>
+</html>

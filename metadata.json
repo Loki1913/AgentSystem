@@ -1,0 +1,8 @@
+{
+  "name": "AgentSystem",
+  "description": "Espacio personal de agentes de IA con modos General, Investigación, Visión, Programación y Navegador.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
